@@ -8,17 +8,27 @@ The following projects and resources must NEVER be modified:
 - **fund-rag-poc project** - This is a separate production system
 - **rg-fund-rag resource group** - Only add new resources, never modify existing ones
 
-### DATABASE PROTECTION - CRITICAL
-- **NEVER delete, modify, or drop existing database tables**
-- **NEVER run ALTER TABLE, DROP TABLE, or TRUNCATE commands**
-- **Only CREATE new tables in the ic_autopilot schema**
-- **Read-only access to nport_funds schema** - only SELECT queries allowed
-- **Do not modify existing schemas** (nport_funds, public, etc.)
+### DATABASE PROTECTION - STRICT & NON-NEGOTIABLE
+**THIS IS AN ABSOLUTE RULE - NO EXCEPTIONS**
 
-If migrations need to be run, they must:
-1. Only CREATE new objects (tables, indexes, schemas)
-2. Never modify or delete existing data
-3. Be reviewed by the user before execution
+FORBIDDEN ACTIONS (will break production systems):
+- ❌ ALTER TABLE - NEVER change table structure
+- ❌ DROP TABLE - NEVER delete tables
+- ❌ DROP SCHEMA - NEVER delete schemas
+- ❌ TRUNCATE - NEVER empty tables
+- ❌ DELETE FROM - NEVER delete rows from existing tables
+- ❌ UPDATE - NEVER modify existing data
+- ❌ Any DDL on existing objects
+
+ALLOWED ACTIONS (only in ic_autopilot schema):
+- ✅ CREATE SCHEMA ic_autopilot (if not exists)
+- ✅ CREATE TABLE in ic_autopilot schema only
+- ✅ CREATE INDEX in ic_autopilot schema only
+- ✅ INSERT INTO ic_autopilot tables only
+- ✅ SELECT from any table (read-only)
+
+**The nport_funds schema and all existing tables are READ-ONLY.**
+**Violating these rules will break the fund-rag-poc application.**
 
 ### Separate Deployments
 - IC Autopilot uses the `ic-autopilot` namespace - keep it isolated
