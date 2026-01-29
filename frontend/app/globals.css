@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Theme - "Ivory Ledger" */
+    --background: 40 20% 98%;
+    --foreground: 220 20% 10%;
+    --card: 40 15% 96%;
+    --card-foreground: 220 20% 10%;
+    --popover: 40 15% 96%;
+    --popover-foreground: 220 20% 10%;
+    --primary: 220 15% 20%;
+    --primary-foreground: 40 20% 98%;
+    --secondary: 40 10% 92%;
+    --secondary-foreground: 220 15% 25%;
+    --muted: 40 10% 92%;
+    --muted-foreground: 220 10% 45%;
+    --accent: 43 74% 49%;
+    --accent-foreground: 220 20% 10%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 15% 88%;
+    --input: 40 15% 88%;
+    --ring: 43 74% 49%;
+    --gold: 43 74% 49%;
+    --gold-foreground: 220 20% 10%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 220 20% 10%;
+    --surface-1: 40 15% 96%;
+    --surface-2: 40 12% 94%;
+    --surface-3: 40 10% 92%;
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    /* Dark Theme - "Obsidian Ledger" */
+    --background: 225 15% 8%;
+    --foreground: 40 10% 92%;
+    --card: 225 12% 11%;
+    --card-foreground: 40 10% 92%;
+    --popover: 225 12% 11%;
+    --popover-foreground: 40 10% 92%;
+    --primary: 43 60% 55%;
+    --primary-foreground: 225 15% 8%;
+    --secondary: 225 10% 18%;
+    --secondary-foreground: 40 10% 85%;
+    --muted: 225 10% 18%;
+    --muted-foreground: 40 5% 55%;
+    --accent: 43 60% 55%;
+    --accent-foreground: 225 15% 8%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 225 10% 18%;
+    --input: 225 10% 18%;
+    --ring: 43 60% 55%;
+    --gold: 43 60% 55%;
+    --gold-foreground: 225 15% 8%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 225 15% 8%;
+    --surface-1: 225 12% 11%;
+    --surface-2: 225 11% 14%;
+    --surface-3: 225 10% 17%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Gold gradient text */
+.text-gold-gradient {
+  @apply bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent;
+}
+
+/* Gold glow effect */
+.glow-gold {
+  box-shadow: 0 0 20px hsl(var(--gold) / 0.3);
+}
+
+/* Surface elevation classes */
+.surface-1 { @apply bg-surface-1; }
+.surface-2 { @apply bg-surface-2; }
+.surface-3 { @apply bg-surface-3; }
+
+/* Hairline border */
+.border-hairline {
+  border-width: 0.5px;
+}
+
+/* Stage status indicators */
+.stage-pending { @apply text-muted-foreground; }
+.stage-running { @apply text-amber-500; }
+.stage-succeeded { @apply text-success; }
+.stage-failed { @apply text-destructive; }
+.stage-repaired { @apply text-warning; }
+
+/* Candidate status indicators */
+.candidate-a { @apply border-blue-500/50 bg-blue-500/10; }
+.candidate-b { @apply border-purple-500/50 bg-purple-500/10; }
+.candidate-c { @apply border-emerald-500/50 bg-emerald-500/10; }
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-surface-2;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}

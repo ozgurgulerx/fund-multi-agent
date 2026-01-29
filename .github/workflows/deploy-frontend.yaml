@@ -1,0 +1,89 @@
+name: Deploy Frontend to App Service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZURE_WEBAPP_NAME: ic-autopilot-frontend
+  AZURE_RG: rg-ic-autopilot
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install Dependencies
+        run: cd frontend && npm ci
+
+      - name: Build Next.js
+        run: cd frontend && npm run build
+        env:
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+
+      - name: Prepare Deployment Package
+        run: |
+          mkdir -p deploy/.next
+
+          # Copy standalone output
+          cp -r frontend/.next/standalone/* deploy/ 2>/dev/null || true
+
+          # For monorepo structure, find the server.js
+          find frontend/.next/standalone -name "server.js" -exec cp {} deploy/ \; 2>/dev/null || true
+          find frontend/.next/standalone -name "package.json" -exec cp {} deploy/ \; 2>/dev/null || true
+
+          # Copy static assets
+          cp -r frontend/.next/static deploy/.next/
+
+          # Copy public assets
+          cp -r frontend/public deploy/ 2>/dev/null || true
+
+          # List contents for debugging
+          ls -la deploy/
+
+      - name: Deploy to App Service
+        run: |
+          cd deploy && zip -r ../app.zip .
+          az webapp deploy --resource-group $AZURE_RG \
+            --name $AZURE_WEBAPP_NAME \
+            --src-path ../app.zip \
+            --type zip \
+            --restart true
+
+      - name: Configure App Service
+        run: |
+          az webapp config appsettings set \
+            --name $AZURE_WEBAPP_NAME \
+            --resource-group $AZURE_RG \
+            --settings \
+              BACKEND_URL="${{ secrets.BACKEND_URL }}" \
+              WEBSITE_VNET_ROUTE_ALL=1 \
+              PORT=3000 \
+              WEBSITES_PORT=3000
+
+          az webapp config set \
+            --name $AZURE_WEBAPP_NAME \
+            --resource-group $AZURE_RG \
+            --startup-file "node server.js"

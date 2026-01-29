@@ -1,0 +1,65 @@
+name: Deploy Backend to AKS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'worker/**'
+      - 'Dockerfile.backend'
+      - 'k8s/**'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  ACR: aistartuptr.azurecr.io
+  IMAGE: ic-autopilot-backend
+  AKS_CLUSTER: aks-ic-autopilot
+  AKS_RG: rg-ic-autopilot
+  NAMESPACE: ic-autopilot
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and Push to ACR
+        run: |
+          az acr login --name aistartuptr
+          docker build -f Dockerfile.backend -t $ACR/$IMAGE:${{ github.sha }} -t $ACR/$IMAGE:latest .
+          docker push $ACR/$IMAGE:${{ github.sha }}
+          docker push $ACR/$IMAGE:latest
+
+      - name: Deploy to AKS
+        run: |
+          az aks get-credentials --resource-group $AKS_RG --name $AKS_CLUSTER
+
+          # Apply K8s manifests
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/backend-configmap.yaml
+          kubectl apply -f k8s/redis-deployment.yaml
+          kubectl apply -f k8s/backend-deployment.yaml
+          kubectl apply -f k8s/backend-service.yaml
+
+          # Update image
+          kubectl set image deployment/ic-autopilot-backend \
+            backend=$ACR/$IMAGE:${{ github.sha }} -n $NAMESPACE
+
+          # Wait for rollout
+          kubectl rollout status deployment/ic-autopilot-backend -n $NAMESPACE --timeout=300s
+
+      - name: Verify Deployment
+        run: |
+          kubectl get pods -n $NAMESPACE
+          kubectl get svc -n $NAMESPACE

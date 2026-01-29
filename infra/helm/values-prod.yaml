@@ -1,0 +1,73 @@
+# Production environment values
+# Usage: helm install ic-autopilot ./ic-autopilot -f values-prod.yaml
+
+global:
+  environment: production
+  namespace: ic-autopilot
+
+azure:
+  subscriptionId: ""  # Set via --set or environment
+  resourceGroup: "rg-ic-autopilot"
+  tenantId: ""  # Set via --set or environment
+  workloadIdentity:
+    enabled: true
+    clientId: ""  # Set via --set or environment
+
+image:
+  registry: aistartuptr.azurecr.io
+  tag: ""  # Set via CI/CD with commit SHA
+
+backend:
+  replicaCount: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilization: 70
+    targetMemoryUtilization: 80
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+  internalLB:
+    enabled: true
+  env:
+    AZURE_OPENAI_ENDPOINT: ""  # Set via --set or CI/CD
+    AZURE_OPENAI_DEPLOYMENT: "gpt-4o"
+    AZURE_SEARCH_ENDPOINT: ""  # Set via --set or CI/CD
+    AZURE_STORAGE_ACCOUNT: ""  # Set via --set or CI/CD
+    POSTGRES_HOST: ""  # Set via --set or CI/CD
+
+redis:
+  enabled: true
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    # Enable SSL redirect if TLS is configured
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+secrets:
+  azureKeyVault:
+    enabled: true
+    vaultName: ""  # Set via --set or CI/CD
+    tenantId: ""  # Set via --set or CI/CD

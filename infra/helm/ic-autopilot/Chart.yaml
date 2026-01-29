@@ -1,0 +1,14 @@
+apiVersion: v2
+name: ic-autopilot
+description: Investment Committee Autopilot - Multi-agent portfolio management system
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - investment
+  - portfolio
+  - multi-agent
+  - ai
+maintainers:
+  - name: Platform Team
+    email: platform@example.com

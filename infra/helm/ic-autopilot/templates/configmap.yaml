@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ic-autopilot.fullname" . }}-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ic-autopilot.labels" . | nindent 4 }}
+data:
+  AZURE_OPENAI_ENDPOINT: {{ .Values.backend.env.AZURE_OPENAI_ENDPOINT | quote }}
+  AZURE_OPENAI_DEPLOYMENT: {{ .Values.backend.env.AZURE_OPENAI_DEPLOYMENT | quote }}
+  AZURE_OPENAI_API_VERSION: {{ .Values.backend.env.AZURE_OPENAI_API_VERSION | quote }}
+  AZURE_SEARCH_ENDPOINT: {{ .Values.backend.env.AZURE_SEARCH_ENDPOINT | quote }}
+  AZURE_SEARCH_INDEX: {{ .Values.backend.env.AZURE_SEARCH_INDEX | quote }}
+  AZURE_STORAGE_ACCOUNT: {{ .Values.backend.env.AZURE_STORAGE_ACCOUNT | quote }}
+  AZURE_STORAGE_CONTAINER: {{ .Values.backend.env.AZURE_STORAGE_CONTAINER | quote }}
+  POSTGRES_HOST: {{ .Values.backend.env.POSTGRES_HOST | quote }}
+  POSTGRES_PORT: {{ .Values.backend.env.POSTGRES_PORT | quote }}
+  POSTGRES_DB: {{ .Values.backend.env.POSTGRES_DB | quote }}
+  POSTGRES_SCHEMA: {{ .Values.backend.env.POSTGRES_SCHEMA | quote }}
+  REDIS_HOST: {{ .Values.backend.env.REDIS_HOST | quote }}
+  REDIS_PORT: {{ .Values.backend.env.REDIS_PORT | quote }}
+  ENVIRONMENT: {{ .Values.global.environment | quote }}

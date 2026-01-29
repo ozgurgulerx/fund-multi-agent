@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ic-autopilot.fullname" . }}-backend
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ic-autopilot.backend.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.backend.autoscaling.enabled }}
+  replicas: {{ .Values.backend.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "ic-autopilot.backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ic-autopilot.backend.selectorLabels" . | nindent 8 }}
+        {{- if .Values.azure.workloadIdentity.enabled }}
+        azure.workload.identity/use: "true"
+        {{- end }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: {{ include "ic-autopilot.serviceAccountName" . }}
+      containers:
+        - name: backend
+          image: {{ include "ic-autopilot.backend.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5001
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "ic-autopilot.fullname" . }}-config
+          env:
+            {{- if .Values.secrets.inline.enabled }}
+            - name: AZURE_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ic-autopilot.fullname" . }}-secrets
+                  key: AZURE_OPENAI_API_KEY
+            - name: AZURE_SEARCH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ic-autopilot.fullname" . }}-secrets
+                  key: AZURE_SEARCH_API_KEY
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ic-autopilot.fullname" . }}-secrets
+                  key: POSTGRES_PASSWORD
+            {{- end }}
+            {{- if .Values.secrets.azureKeyVault.enabled }}
+            - name: AZURE_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ic-autopilot.fullname" . }}-kv-secrets
+                  key: AZURE_OPENAI_API_KEY
+            - name: AZURE_SEARCH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ic-autopilot.fullname" . }}-kv-secrets
+                  key: AZURE_SEARCH_API_KEY
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ic-autopilot.fullname" . }}-kv-secrets
+                  key: POSTGRES_PASSWORD
+            {{- end }}
+            # Workload Identity - use managed identity for Azure SDK
+            {{- if .Values.azure.workloadIdentity.enabled }}
+            - name: AZURE_CLIENT_ID
+              value: {{ .Values.azure.workloadIdentity.clientId | quote }}
+            - name: AZURE_TENANT_ID
+              value: {{ .Values.azure.tenantId | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          {{- if .Values.secrets.azureKeyVault.enabled }}
+          volumeMounts:
+            - name: secrets-store
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+          {{- end }}
+      {{- if .Values.secrets.azureKeyVault.enabled }}
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ include "ic-autopilot.fullname" . }}-kv
+      {{- end }}

@@ -1,0 +1,153 @@
+# IC Autopilot Helm Values
+# Override these values for different environments
+
+global:
+  environment: production
+  namespace: ic-autopilot
+
+# Azure Configuration
+azure:
+  subscriptionId: ""
+  resourceGroup: "rg-ic-autopilot"
+  tenantId: ""
+  # Workload Identity
+  workloadIdentity:
+    enabled: true
+    clientId: ""  # Managed Identity Client ID
+    serviceAccountName: ic-autopilot-sa
+
+# Container Registry
+image:
+  registry: aistartuptr.azurecr.io
+  pullPolicy: IfNotPresent
+  # Overridden by CI/CD
+  tag: "latest"
+
+# Backend Configuration
+backend:
+  replicaCount: 2
+  image:
+    repository: ic-autopilot-backend
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilization: 70
+    targetMemoryUtilization: 80
+  service:
+    type: ClusterIP
+    port: 5001
+  # Internal Load Balancer for VNet access
+  internalLB:
+    enabled: true
+    port: 80
+  # Environment variables
+  env:
+    AZURE_OPENAI_ENDPOINT: ""
+    AZURE_OPENAI_DEPLOYMENT: "gpt-4o"
+    AZURE_OPENAI_API_VERSION: "2024-12-01-preview"
+    AZURE_SEARCH_ENDPOINT: ""
+    AZURE_SEARCH_INDEX: "fund-documents"
+    AZURE_STORAGE_ACCOUNT: ""
+    AZURE_STORAGE_CONTAINER: "ic-artifacts"
+    POSTGRES_HOST: ""
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: "postgresql_db"
+    POSTGRES_SCHEMA: "ic_autopilot"
+    REDIS_HOST: "redis"
+    REDIS_PORT: "6379"
+
+# Frontend Configuration (for K8s deployment option)
+frontend:
+  enabled: false  # Usually deployed to App Service
+  replicaCount: 2
+  image:
+    repository: ic-autopilot-frontend
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  service:
+    type: ClusterIP
+    port: 3000
+  env:
+    BACKEND_URL: "http://ic-autopilot-backend:5001"
+
+# Redis Configuration
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: "7-alpine"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+  persistence:
+    enabled: false  # Use emptyDir for non-critical cache
+  config:
+    maxmemory: "200mb"
+    maxmemoryPolicy: "allkeys-lru"
+    appendonly: "yes"
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+  hosts:
+    - host: ""  # Empty for IP-based access
+      paths:
+        - path: /api
+          pathType: Prefix
+          service: backend
+        - path: /
+          pathType: Prefix
+          service: frontend
+  tls: []
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Network Policy
+networkPolicy:
+  enabled: false  # Enable in production
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Secrets (reference to external secrets or inline)
+secrets:
+  # Option 1: Use Azure Key Vault with CSI driver
+  azureKeyVault:
+    enabled: false
+    vaultName: ""
+    tenantId: ""
+  # Option 2: Create K8s secret from values (not recommended for production)
+  inline:
+    enabled: false
+    azureOpenaiApiKey: ""
+    azureSearchApiKey: ""
+    postgresPassword: ""

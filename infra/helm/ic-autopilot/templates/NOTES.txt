@@ -1,0 +1,38 @@
+🎉 IC Autopilot has been deployed!
+
+1. Get the backend service URL:
+{{- if .Values.backend.internalLB.enabled }}
+   Internal LB (VNet access):
+   kubectl get svc {{ include "ic-autopilot.fullname" . }}-backend-internal -n {{ .Values.global.namespace }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+{{- end }}
+
+{{- if .Values.ingress.enabled }}
+
+2. Access via Ingress:
+   kubectl get ingress {{ include "ic-autopilot.fullname" . }}-ingress -n {{ .Values.global.namespace }}
+{{- end }}
+
+3. Check pod status:
+   kubectl get pods -n {{ .Values.global.namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+4. View logs:
+   kubectl logs -f deployment/{{ include "ic-autopilot.fullname" . }}-backend -n {{ .Values.global.namespace }}
+
+5. Test the health endpoint:
+   kubectl port-forward svc/{{ include "ic-autopilot.fullname" . }}-backend 5001:5001 -n {{ .Values.global.namespace }}
+   curl http://localhost:5001/health
+
+{{- if .Values.azure.workloadIdentity.enabled }}
+
+📌 Workload Identity is ENABLED
+   Managed Identity Client ID: {{ .Values.azure.workloadIdentity.clientId }}
+   Ensure the federated credential is configured for service account:
+   {{ include "ic-autopilot.serviceAccountName" . }}
+{{- end }}
+
+{{- if .Values.secrets.azureKeyVault.enabled }}
+
+🔐 Azure Key Vault integration is ENABLED
+   Key Vault: {{ .Values.secrets.azureKeyVault.vaultName }}
+   Ensure secrets are created: azure-openai-api-key, azure-search-api-key, postgres-password
+{{- end }}

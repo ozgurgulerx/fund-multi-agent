@@ -1,0 +1,57 @@
+# Development environment values
+# Usage: helm install ic-autopilot ./ic-autopilot -f values-dev.yaml
+
+global:
+  environment: development
+  namespace: ic-autopilot-dev
+
+azure:
+  subscriptionId: "your-subscription-id"
+  resourceGroup: "rg-ic-autopilot-dev"
+  tenantId: "your-tenant-id"
+  workloadIdentity:
+    enabled: true
+    clientId: "your-managed-identity-client-id"
+
+image:
+  tag: "dev"
+
+backend:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  env:
+    AZURE_OPENAI_ENDPOINT: "https://your-aoai.openai.azure.com/"
+    AZURE_SEARCH_ENDPOINT: "https://your-search.search.windows.net"
+    AZURE_STORAGE_ACCOUNT: "your-storage-account"
+    POSTGRES_HOST: "your-postgres.postgres.database.azure.com"
+
+redis:
+  enabled: true
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "100m"
+      memory: "128Mi"
+
+ingress:
+  enabled: false
+
+podDisruptionBudget:
+  enabled: false
+
+secrets:
+  inline:
+    enabled: true
+    azureOpenaiApiKey: "dev-key-placeholder"
+    azureSearchApiKey: "dev-key-placeholder"
+    postgresPassword: "dev-password-placeholder"

@@ -1,0 +1,44 @@
+---
+# ClusterIP (internal K8s only)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ic-autopilot-backend
+  namespace: ic-autopilot
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5001
+      targetPort: 5001
+  selector:
+    app: ic-autopilot-backend
+---
+# Internal LoadBalancer (for App Service VNet access)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ic-autopilot-backend-internal
+  namespace: ic-autopilot
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 5001
+  selector:
+    app: ic-autopilot-backend
+---
+# External LoadBalancer (for testing - optional)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ic-autopilot-backend-lb
+  namespace: ic-autopilot
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 5001
+  selector:
+    app: ic-autopilot-backend
