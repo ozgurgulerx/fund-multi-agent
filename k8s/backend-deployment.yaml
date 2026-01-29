@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: aistartuptr.azurecr.io/ic-autopilot-backend:latest
+          image: aistartuptr.azurecr.io/ic-autopilot-backend:v1
           ports:
             - containerPort: 5001
           envFrom:
@@ -46,8 +46,7 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 5
-      imagePullSecrets:
-        - name: acr-secret
+      # ACR attached to AKS - no imagePullSecrets needed
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
