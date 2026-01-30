@@ -608,6 +608,16 @@ export async function* generateMockEvents(
   // Explain Memo Agent (always)
   yield* executeAgent(state, "explain_memo_agent", "Generating IC memo and decision explanations", d);
 
+  // Emit portfolio explanation
+  const explanationText = generatePortfolioExplanation(winner.allocations!, winner.metrics!, actualPolicy);
+  yield toRunEvent(
+    createEvent(runId, traceId, "portfolio.explanation", "explain_memo_agent", "Explain Memo Agent", "Portfolio explanation generated", {
+      explanation: explanationText,
+      candidateId: winnerId,
+    })
+  );
+  await d(300);
+
   // Audit Provenance Agent (always)
   yield* executeAgent(state, "audit_provenance_agent", "Finalizing audit trail", d);
 
@@ -983,6 +993,30 @@ function generateMetrics(
     var95: Math.round(volatility * 0.08 * 100) / 100 / 100,
     turnover: 20 + Math.floor(Math.random() * 30),
   };
+}
+
+function generatePortfolioExplanation(
+  allocations: Record<string, number>,
+  metrics: { expectedReturn?: number; volatility?: number; sharpe?: number },
+  policy: PolicyInput
+): string {
+  const topHoldings = Object.entries(allocations)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([asset, weight]) => `${asset} (${(weight * 100).toFixed(0)}%)`)
+    .join(", ");
+
+  const riskProfile = policy.riskTolerance === "conservative"
+    ? "capital preservation with modest growth"
+    : policy.riskTolerance === "aggressive"
+    ? "growth-oriented with higher risk tolerance"
+    : "balanced growth with moderate risk";
+
+  const themes = policy.preferences.themes.length > 0
+    ? ` with exposure to ${policy.preferences.themes.join(" and ")}`
+    : "";
+
+  return `This portfolio is designed for ${riskProfile}${themes}. The allocation is anchored by ${topHoldings}, targeting a ${metrics.expectedReturn?.toFixed(1)}% expected return with ${metrics.volatility?.toFixed(1)}% volatility (Sharpe ratio: ${metrics.sharpe?.toFixed(2)}). The diversified structure across domestic equities, international stocks, and fixed income helps manage drawdown risk while pursuing the ${policy.benchmark.targetReturnPct}% return target.`;
 }
 
 function generateGateResult(

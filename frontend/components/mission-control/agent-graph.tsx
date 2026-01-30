@@ -84,17 +84,21 @@ function AgentNode({ data }: NodeProps<{ agent: Agent; isInjected?: boolean }>) 
   // Use agent's color from registry or default
   const agentDef = getAgent(agent.id);
 
+  // Get description for tooltip
+  const description = agentDef?.description || "";
+
   return (
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
       className={`
-        relative px-3 py-2 rounded-xl border-2 transition-all
+        relative px-3 py-2 rounded-xl border-2 transition-all group cursor-pointer
         ${statusColors[agent.status]}
-        ${isOrchestrator ? "min-w-[140px]" : "min-w-[130px]"}
+        ${isOrchestrator ? "min-w-[150px]" : "min-w-[140px]"}
         ${isInjected ? "ring-2 ring-amber-500/50 ring-offset-1 ring-offset-background" : ""}
       `}
+      title={`${agent.name}\n${description}`}
     >
       {/* Connection handles */}
       <Handle type="target" position={Position.Top} className="!bg-amber-500 !w-2 !h-2 !opacity-0" />
@@ -105,16 +109,21 @@ function AgentNode({ data }: NodeProps<{ agent: Agent; isInjected?: boolean }>) 
       <div className="flex items-center gap-2 mb-1">
         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${statusDots[agent.status]}`} />
         <Icon className={`w-4 h-4 flex-shrink-0 ${agentDef?.color || "text-gray-400"}`} />
-        <span className="font-medium text-xs text-foreground truncate" title={agent.name}>
+        <span className="font-medium text-xs text-foreground whitespace-nowrap">
           {agent.shortName || agent.name}
         </span>
       </div>
 
-      {agent.currentObjective && agent.status === "running" && (
-        <p className="text-[10px] text-muted-foreground truncate max-w-[100px]">
+      {/* Always show description for completed/idle agents, objective for running */}
+      {agent.status === "running" && agent.currentObjective ? (
+        <p className="text-[10px] text-muted-foreground truncate max-w-[120px]">
           {agent.currentObjective}
         </p>
-      )}
+      ) : description && agent.status !== "idle" ? (
+        <p className="text-[9px] text-muted-foreground/70 truncate max-w-[120px]">
+          {description.split(" ").slice(0, 4).join(" ")}...
+        </p>
+      ) : null}
 
       {agent.status === "running" && agent.progress > 0 && (
         <div className="mt-1 h-1 bg-surface-2 rounded-full overflow-hidden">
@@ -132,6 +141,20 @@ function AgentNode({ data }: NodeProps<{ agent: Agent; isInjected?: boolean }>) 
           INJECTED
         </div>
       )}
+
+      {/* Hover tooltip with full details */}
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-surface-1 border border-border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 min-w-[200px]">
+        <div className="font-medium text-sm mb-1">{agent.name}</div>
+        <p className="text-xs text-muted-foreground">{description}</p>
+        <div className="mt-2 flex items-center gap-2 text-[10px]">
+          <span className={`px-1.5 py-0.5 rounded ${statusColors[agent.status]}`}>
+            {agent.status}
+          </span>
+          {agentDef?.category && (
+            <span className="text-muted-foreground">{agentDef.category}</span>
+          )}
+        </div>
+      </div>
     </motion.div>
   );
 }
