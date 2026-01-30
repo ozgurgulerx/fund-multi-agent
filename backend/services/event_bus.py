@@ -18,8 +18,15 @@ from schemas.events import WorkflowEvent, EventKind, heartbeat_event
 logger = structlog.get_logger()
 
 # Redis configuration
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+# Use BACKEND_REDIS_* to avoid K8s service discovery conflicts
+# (K8s injects REDIS_PORT=tcp://... when a service named 'redis' exists)
+REDIS_HOST = os.getenv("BACKEND_REDIS_HOST", os.getenv("REDIS_HOST", "localhost"))
+_redis_port = os.getenv("BACKEND_REDIS_PORT", "6379")
+# Handle case where K8s injects tcp://IP:PORT format
+if _redis_port.startswith("tcp://"):
+    REDIS_PORT = int(_redis_port.split(":")[-1])
+else:
+    REDIS_PORT = int(_redis_port)
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", None)
 REDIS_DB = int(os.getenv("REDIS_DB", "0"))
 

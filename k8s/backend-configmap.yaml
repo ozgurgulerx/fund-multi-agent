@@ -25,6 +25,10 @@ data:
   PGUSER: "ozgurguler"
   PG_FUND_SCHEMA: "nport_funds"
 
+  # Redis (use BACKEND_REDIS_* to avoid K8s service discovery conflicts)
+  BACKEND_REDIS_HOST: "redis"
+  BACKEND_REDIS_PORT: "6379"
+
   # App config
   LOG_LEVEL: "INFO"
   PYTHONPATH: "/app"
