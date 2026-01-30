@@ -110,26 +110,37 @@ async function processWithLLM(
   }
 
   const systemPrompt = `You are a portfolio advisor assistant. Based on the user's message, update their investment policy.
+Extract ALL investment preferences mentioned, even if implicit.
 
 Current policy:
 ${JSON.stringify(currentPolicy, null, 2)}
 
 Respond with a JSON object containing:
-1. "response": A friendly, conversational response to the user
+1. "response": A friendly, conversational response to the user acknowledging ALL their preferences
 2. "policy": The updated policy object (preserve all existing values, only modify what the user requested)
 3. "updates": An array of human-readable strings describing what changed (e.g., "Risk tolerance → conservative")
 
-Rules for policy updates:
+Policy field rules:
 - risk_tolerance: "conservative", "moderate", "aggressive", "very_aggressive"
 - time_horizon: "short" (<3y), "medium" (3-7y), "long" (7+y)
-- exclusions: array of sectors/industries (e.g., ["tobacco", "weapons", "gambling"])
-- preferred_themes: array of investment themes (e.g., ["AI", "clean_energy", "healthcare"])
+- exclusions: array of sectors to avoid (e.g., ["tobacco", "weapons", "gambling", "fossil_fuels"])
+- preferred_themes: array of investment themes - IMPORTANT: capture ALL themes mentioned including:
+  * Technology: "AI", "technology", "fintech", "blockchain", "cryptocurrency"
+  * Healthcare: "healthcare", "biotechnology"
+  * Energy: "clean_energy", "electric_vehicles"
+  * Real Assets: "real_estate", "infrastructure", "commodities", "gold", "precious_metals"
+  * Protection: "inflation_hedge" (for inflation protection, TIPS, real assets as inflation hedge)
+  * Income: "dividends", "income", "high_yield"
+  * Regional: "Asia", "China", "India", "Emerging_Markets", "Europe", "Japan", "Latin_America"
 - esg_focus: true/false
 - portfolio_value: number in USD
 - max_volatility: percentage (e.g., 15 for 15%)
 - max_drawdown: percentage
-- target_return: percentage
+- target_return: percentage (extract from phrases like "30% YoY", "grow 25%", etc.)
 - rebalance_frequency: "monthly", "quarterly", "semi-annual", "annual"
+
+IMPORTANT: If user mentions "inflation hedge", "protect against inflation", "real assets", or similar - add "inflation_hedge" to preferred_themes.
+IMPORTANT: Extract target_return from phrases like "30% YoY", "grow at least 25%", "targeting 20% returns".
 
 Only output valid JSON, no markdown or explanation.`;
 
@@ -299,7 +310,20 @@ function processWithRules(message: string, currentPolicy: Policy): ChatResponse 
     // Real Assets
     "real estate": "real_estate",
     "infrastructure": "infrastructure",
-    // Regional - NEW
+    // Inflation & Commodities
+    "inflation": "inflation_hedge",
+    "inflation hedge": "inflation_hedge",
+    "inflation protection": "inflation_hedge",
+    "tips": "inflation_hedge",
+    "commodities": "commodities",
+    "commodity": "commodities",
+    "gold": "gold",
+    "precious metals": "precious_metals",
+    // Dividends & Income
+    "dividend": "dividends",
+    "income": "income",
+    "yield": "high_yield",
+    // Regional
     "\\basia\\b": "Asia",
     "asian": "Asia",
     "china": "China",
@@ -317,7 +341,26 @@ function processWithRules(message: string, currentPolicy: Policy): ChatResponse 
   };
 
   const currentThemes = policy.preferences.preferred_themes || [];
-  const hasThemeIntent = lowerMessage.includes("focus") || lowerMessage.includes("interest") || lowerMessage.includes("like") || lowerMessage.includes("want") || lowerMessage.includes("invest in");
+  // More flexible intent detection - if they mention themes, they probably want them
+  const hasThemeIntent =
+    lowerMessage.includes("focus") ||
+    lowerMessage.includes("interest") ||
+    lowerMessage.includes("like") ||
+    lowerMessage.includes("want") ||
+    lowerMessage.includes("invest") ||
+    lowerMessage.includes("exposure") ||
+    lowerMessage.includes("hedge") ||
+    lowerMessage.includes("protect") ||
+    lowerMessage.includes("growth") ||
+    lowerMessage.includes("leverage") ||
+    lowerMessage.includes("taking advantage") ||
+    lowerMessage.includes("take advantage") ||
+    lowerMessage.includes("benefit from") ||
+    // If the message is about building a portfolio, themes are likely intended
+    lowerMessage.includes("portfolio") ||
+    lowerMessage.includes("aggressive") ||
+    lowerMessage.includes("conservative");
+
   for (const [pattern, theme] of Object.entries(themeKeywords)) {
     const regex = new RegExp(pattern, "i");
     if (regex.test(lowerMessage) && hasThemeIntent) {
