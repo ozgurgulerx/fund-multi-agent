@@ -455,6 +455,14 @@ export async function POST(request: NextRequest) {
     }
     console.log("=".repeat(70) + "\n");
 
+    // Preserve user's full context for agents to use
+    // Append to existing chat_context to build conversation history
+    const existingContext = result.policy.chat_context || "";
+    const newContext = existingContext
+      ? `${existingContext}\n\nUser: ${message}`
+      : `User: ${message}`;
+    result.policy.chat_context = newContext;
+
     return NextResponse.json({
       response: result.response,
       policy: result.policy,

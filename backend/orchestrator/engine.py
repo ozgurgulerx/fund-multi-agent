@@ -636,8 +636,16 @@ class OrchestratorEngine:
                     if d.decision_type in ["include_agent", "select_candidate", "commit"]
                 ][:3]
 
-            prompt = f"""Summarize this portfolio recommendation in 2-3 sentences for an investor:
+            # Include user's original investment thesis if available
+            user_context = policy.chat_context or ""
+            context_section = f"""
+The investor originally stated:
+"{user_context}"
 
+""" if user_context else ""
+
+            prompt = f"""Summarize this portfolio recommendation in 2-3 sentences for an investor.
+{context_section}
 Portfolio allocation (top 5 holdings):
 {', '.join([f'{asset}: {weight:.0%}' for asset, weight in top_holdings])}
 
@@ -649,9 +657,10 @@ Key metrics:
 Investor profile:
 - Risk tolerance: {policy.risk_appetite.risk_tolerance}
 - Time horizon: {policy.risk_appetite.time_horizon}
+- Themes: {', '.join(policy.preferences.preferred_themes) or 'None'}
 - ESG focus: {'Yes' if policy.preferences.esg_focus else 'No'}
 
-Explain why these funds were selected and how they match the investor's goals. Be concise and professional."""
+Explain how this portfolio addresses the investor's specific goals and themes. Reference their original investment thesis if provided. Be concise and professional."""
 
             response = await client.chat.completions.create(
                 model=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4o"),
@@ -755,14 +764,21 @@ Explain why these funds were selected and how they match the investor's goals. B
 - Primary: {policy.benchmark_settings.benchmark}
 - Target Return: {policy.benchmark_settings.target_return}%
 
+### Investment Thesis (User Context)
+{policy.chat_context or "No additional context provided. Use standard optimization approach."}
+
+### Special Instructions
+{policy.special_instructions or "None"}
+
 ### Instructions
 1. Analyze the investment policy and constraints
-2. Gather market data for the investable universe
-3. Compute risk metrics and stress tests
-4. Forecast expected returns
-5. Optimize the portfolio allocation
-6. Verify compliance with all constraints
-7. Provide the final allocation with supporting evidence
+2. Pay special attention to the user's investment thesis above - align fund selection with their stated goals
+3. Gather market data for the investable universe, prioritizing funds that match the user's themes
+4. Compute risk metrics and stress tests
+5. Forecast expected returns with consideration for the user's target return expectations
+6. Optimize the portfolio allocation
+7. Verify compliance with all constraints
+8. Provide the final allocation with supporting evidence that references the user's original goals
 """
 
     async def _execute_workflow_with_events(self, input_message: str) -> PortfolioAllocation:
