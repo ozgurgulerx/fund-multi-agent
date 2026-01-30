@@ -112,8 +112,8 @@ export function PortfolioCanvas() {
 
       {/* Allocation Chart */}
       {allocations.length > 0 ? (
-        <div className="flex-1">
-          <ResponsiveContainer width="100%" height={200}>
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <ResponsiveContainer width="100%" height={160}>
             <BarChart data={chartData} layout="vertical">
               <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 10 }} />
               <YAxis
@@ -139,7 +139,7 @@ export function PortfolioCanvas() {
           </ResponsiveContainer>
 
           {/* Allocation List */}
-          <div className="mt-4 space-y-2 max-h-[150px] overflow-y-auto">
+          <div className="mt-3 space-y-1.5 max-h-[100px] overflow-y-auto">
             {allocations.map(([asset, weight]) => (
               <motion.div
                 key={asset}
@@ -164,13 +164,13 @@ export function PortfolioCanvas() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20"
+              className="mt-3 p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20"
             >
-              <div className="flex items-center gap-2 mb-2">
-                <MessageSquare className="w-4 h-4 text-blue-500" />
+              <div className="flex items-center gap-2 mb-1.5">
+                <MessageSquare className="w-3.5 h-3.5 text-blue-500" />
                 <span className="text-xs font-medium text-blue-400">AI Explanation</span>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 {portfolio.explanation}
               </p>
             </motion.div>
