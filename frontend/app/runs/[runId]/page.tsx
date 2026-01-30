@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { AgentGraph } from "@/components/mission-control/agent-graph";
 import { OrchestratorTimeline } from "@/components/mission-control/orchestrator-timeline";
 import { PortfolioCanvas } from "@/components/mission-control/portfolio-canvas";
+import { AgentSelectionPanel } from "@/components/mission-control/agent-selection-panel";
+import { CandidateTracker } from "@/components/mission-control/candidate-tracker";
 import { useOrchestratorStore } from "@/store/orchestrator-store";
 import { runMockOptimization, RunEvent, InvestorPolicy } from "@/lib/mock-events";
 
@@ -227,18 +229,26 @@ export default function MissionControlPage() {
       {/* Main Content - 3 Column Layout */}
       <main className="container mx-auto px-6 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-180px)]">
-          {/* Left: Agent Graph */}
+          {/* Left Column: Agent Selection + Agent Graph */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-card border border-border/30 rounded-xl p-4 relative overflow-hidden"
+            className="flex flex-col gap-4 overflow-hidden"
           >
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-amber-500" />
-              Agent Network
-            </h3>
-            <div className="h-[calc(100%-40px)]">
-              <AgentGraph />
+            {/* Agent Selection Panel */}
+            <div className="flex-shrink-0 max-h-[40%] overflow-auto">
+              <AgentSelectionPanel />
+            </div>
+
+            {/* Agent Graph */}
+            <div className="flex-1 min-h-0 bg-card border border-border/30 rounded-xl p-4 relative overflow-hidden">
+              <h3 className="font-semibold mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-amber-500" />
+                Agent Network
+              </h3>
+              <div className="h-[calc(100%-40px)]">
+                <AgentGraph />
+              </div>
             </div>
           </motion.div>
 
@@ -258,14 +268,20 @@ export default function MissionControlPage() {
             </div>
           </motion.div>
 
-          {/* Right: Portfolio Canvas */}
+          {/* Right Column: Candidate Tracker + Portfolio Canvas */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-card border border-border/30 rounded-xl p-4 overflow-hidden"
+            className="flex flex-col gap-4 overflow-hidden"
           >
-            <div className="h-full">
+            {/* Candidate Tracker */}
+            <div className="flex-shrink-0 max-h-[50%] overflow-auto">
+              <CandidateTracker />
+            </div>
+
+            {/* Portfolio Canvas */}
+            <div className="flex-1 min-h-0 bg-card border border-border/30 rounded-xl p-4 overflow-hidden">
               <PortfolioCanvas />
             </div>
           </motion.div>

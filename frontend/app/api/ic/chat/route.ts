@@ -39,6 +39,9 @@ interface Policy {
     rebalance_frequency?: string;
     rebalance_threshold?: number;
   };
+  // User context preservation
+  chat_context?: string;
+  special_instructions?: string;
 }
 
 interface ChatResponse {

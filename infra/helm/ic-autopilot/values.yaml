@@ -51,7 +51,10 @@ backend:
   # Environment variables
   env:
     AZURE_OPENAI_ENDPOINT: ""
-    AZURE_OPENAI_DEPLOYMENT: "gpt-4o"
+    # Model deployments - separate for agents vs orchestrator
+    AZURE_OPENAI_AGENT_DEPLOYMENT: "gpt-5-nano"        # Lighter model for individual agents
+    AZURE_OPENAI_ORCHESTRATOR_DEPLOYMENT: "gpt-5-mini" # More capable model for orchestration
+    AZURE_OPENAI_DEPLOYMENT: "gpt-5-nano"              # Legacy fallback (deprecated)
     AZURE_OPENAI_API_VERSION: "2024-12-01-preview"
     AZURE_SEARCH_ENDPOINT: ""
     AZURE_SEARCH_INDEX: "fund-documents"

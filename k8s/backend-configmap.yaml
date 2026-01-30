@@ -6,7 +6,11 @@ metadata:
 data:
   # Azure OpenAI (shared - no change)
   AZURE_OPENAI_ENDPOINT: "https://aoai-ep-swedencentral02.openai.azure.com/"
-  AZURE_OPENAI_DEPLOYMENT_NAME: "gpt-4o"
+  # Model deployments - separate for agents vs orchestrator
+  AZURE_OPENAI_AGENT_DEPLOYMENT: "gpt-5-nano"        # Lighter model for individual agents
+  AZURE_OPENAI_ORCHESTRATOR_DEPLOYMENT: "gpt-5-mini" # More capable model for orchestration
+  AZURE_OPENAI_DEPLOYMENT: "gpt-5-nano"              # Legacy fallback
+  AZURE_OPENAI_DEPLOYMENT_NAME: "gpt-5-nano"         # Legacy naming
   AZURE_TEXT_EMBEDDING_DEPLOYMENT_NAME: "text-embedding-3-small"
 
   # Azure AI Search (shared - no change)

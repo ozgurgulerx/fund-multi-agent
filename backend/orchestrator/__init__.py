@@ -43,6 +43,15 @@ from backend.orchestrator.executors import (
     PortfolioFinalizerExecutor,
     ComplianceGateExecutor,
 )
+from backend.orchestrator.agent_registry import (
+    AgentDefinition,
+    AgentCondition,
+    AgentSelectionResult,
+    select_agents_for_policy,
+    get_agent_registry,
+    get_agent_by_id,
+)
+from backend.orchestrator.trace_emitter import TraceEmitter
 
 __all__ = [
     # Engine
@@ -74,4 +83,13 @@ __all__ = [
     "RiskReturnAggregatorExecutor",
     "PortfolioFinalizerExecutor",
     "ComplianceGateExecutor",
+    # Agent Registry
+    "AgentDefinition",
+    "AgentCondition",
+    "AgentSelectionResult",
+    "select_agents_for_policy",
+    "get_agent_registry",
+    "get_agent_by_id",
+    # Trace Emitter
+    "TraceEmitter",
 ]

@@ -287,9 +287,10 @@ def create_magentic_workflow(
     compliance_agent = create_compliance_agent(name="compliance_officer")
 
     # Create a manager agent for orchestrating the workflow
-    from backend.agents.client import get_chat_client
+    # Uses orchestrator deployment (gpt-5-mini) for better planning capabilities
+    from backend.agents.client import get_orchestrator_chat_client
     manager_agent = ChatAgent(
-        chat_client=get_chat_client(),
+        chat_client=get_orchestrator_chat_client(),
         name="magentic_manager",
         instructions="""You are the Magentic Manager for portfolio optimization.
 Your role is to plan and coordinate the execution of specialist agents to optimize a portfolio.
@@ -467,9 +468,10 @@ def create_group_chat_workflow(
         return any(signal in recent_text for signal in consensus_signals)
 
     # Create a manager agent for the group chat
-    from backend.agents.client import get_chat_client
+    # Uses orchestrator deployment (gpt-5-mini) for better coordination capabilities
+    from backend.agents.client import get_orchestrator_chat_client
     manager_agent = ChatAgent(
-        chat_client=get_chat_client(),
+        chat_client=get_orchestrator_chat_client(),
         name="group_chat_manager",
         instructions="""You are the Group Chat Manager for portfolio optimization.
 Your role is to facilitate discussion between specialist agents and select who speaks next.

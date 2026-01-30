@@ -11,7 +11,12 @@ from backend.agents.optimizer import create_optimizer_agent, get_optimizer_agent
 from backend.agents.compliance import create_compliance_agent, get_compliance_agent
 
 # Chat client factory
-from backend.agents.client import get_chat_client, get_shared_chat_client
+from backend.agents.client import (
+    get_chat_client,
+    get_shared_chat_client,
+    get_orchestrator_chat_client,
+    get_deployment_info,
+)
 
 __all__ = [
     # Agent factories
@@ -26,7 +31,9 @@ __all__ = [
     "get_return_agent",
     "get_optimizer_agent",
     "get_compliance_agent",
-    # Chat client
+    # Chat clients
     "get_chat_client",
     "get_shared_chat_client",
+    "get_orchestrator_chat_client",  # For orchestrator/manager (gpt-5-mini)
+    "get_deployment_info",
 ]
