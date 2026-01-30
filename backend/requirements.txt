@@ -31,12 +31,12 @@ asyncpg==0.30.0
 psycopg2-binary==2.9.10
 sqlalchemy[asyncio]==2.0.36
 
-# Observability
-opentelemetry-api==1.28.1
-opentelemetry-sdk==1.28.1
-opentelemetry-instrumentation-fastapi==0.49b1
-opentelemetry-exporter-otlp==1.28.1
-azure-monitor-opentelemetry==1.6.3
+# Observability (versions compatible with agent-framework)
+opentelemetry-api>=1.39.0
+opentelemetry-sdk>=1.39.0
+opentelemetry-instrumentation-fastapi>=0.50b0
+opentelemetry-exporter-otlp>=1.39.0
+azure-monitor-opentelemetry>=1.6.3
 
 # Utils
 python-dotenv==1.0.1
