@@ -49,7 +49,8 @@ class BuildUniverseExecutor(BaseExecutor):
 
         await self.emit_progress("Connecting to fund database...")
 
-        # Connect to database
+        # Connect to database - READ-ONLY CONNECTION
+        # CRITICAL: This connection is READ-ONLY. Never modify nport_funds data.
         conn = await asyncpg.connect(
             host=PGHOST,
             port=PGPORT,
@@ -60,6 +61,8 @@ class BuildUniverseExecutor(BaseExecutor):
         )
 
         try:
+            # Set connection to READ-ONLY mode to prevent accidental writes
+            await conn.execute("SET SESSION CHARACTERISTICS AS TRANSACTION READ ONLY")
             await self.emit_progress("Querying funds and holdings...")
 
             # Query funds with asset allocation breakdown

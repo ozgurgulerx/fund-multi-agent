@@ -1,6 +1,12 @@
 """
 Run metadata store using PostgreSQL for durable run state.
 Supports run lifecycle, stage checkpointing, and queries.
+
+IMPORTANT DATABASE SAFETY:
+- This module ONLY creates and manages tables in the 'ic_autopilot' schema
+- It does NOT touch any existing schemas (nport_funds, public, etc.)
+- All operations are isolated to ic_autopilot.runs, ic_autopilot.stages, ic_autopilot.candidates
+- If the ic_autopilot schema doesn't exist, it will be CREATED (not modify existing)
 """
 
 import json
