@@ -2,32 +2,28 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: backend-config
-  namespace: ic-autopilot
+  namespace: pii-multiagent
 data:
-  # Azure OpenAI (shared)
+  # Azure OpenAI (shared - no change)
   AZURE_OPENAI_ENDPOINT: "https://aoai-ep-swedencentral02.openai.azure.com/"
-  AZURE_OPENAI_DEPLOYMENT_NAME: "gpt-5-nano"
+  AZURE_OPENAI_DEPLOYMENT_NAME: "gpt-4o"
   AZURE_TEXT_EMBEDDING_DEPLOYMENT_NAME: "text-embedding-3-small"
 
-  # Azure AI Search (shared)
+  # Azure AI Search (shared - no change)
   AZURE_SEARCH_ENDPOINT: "https://chatops-ozguler.search.windows.net"
   AZURE_SEARCH_INDEX_NAME: "nport-funds-index"
   RAPTOR_INDEX_NAME: "imf_raptor"
 
-  # PII Detection (shared)
+  # PII Detection (shared - no change)
   PII_ENDPOINT: "http://pii-ozguler.eastus.azurecontainer.io:5000"
+  PII_CONTAINER_ENDPOINT: "http://pii-ozguler.eastus.azurecontainer.io:5000"
 
-  # PostgreSQL (shared - fund data)
+  # PostgreSQL (shared - READ ONLY)
   PGHOST: "aistartupstr.postgres.database.azure.com"
   PGPORT: "5432"
   PGDATABASE: "fundrag"
   PGUSER: "ozgurguler"
   PG_FUND_SCHEMA: "nport_funds"
-  PG_SCHEMA: "ic_autopilot"
-
-  # Redis for event streaming
-  REDIS_HOST: "redis"
-  REDIS_PORT: "6379"
 
   # App config
   LOG_LEVEL: "INFO"

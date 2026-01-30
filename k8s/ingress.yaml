@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ic-autopilot-ingress
-  namespace: ic-autopilot
+  name: pii-multiagent-ingress
+  namespace: pii-multiagent
   annotations:
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
@@ -20,14 +20,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: ic-autopilot-backend
+                name: pii-multiagent-backend
                 port:
                   number: 5001
-          # Frontend routes (if serving from K8s)
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: ic-autopilot-frontend
-                port:
-                  number: 3000

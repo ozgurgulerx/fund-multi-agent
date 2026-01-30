@@ -12,8 +12,8 @@ permissions:
   contents: read
 
 env:
-  AZURE_WEBAPP_NAME: ic-autopilot-frontend
-  AZURE_RG: rg-ic-autopilot
+  AZURE_WEBAPP_NAME: pii-multiagent-frontend
+  AZURE_RG: rg-pii-multiagent
 
 jobs:
   build-and-deploy:

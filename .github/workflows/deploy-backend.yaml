@@ -16,10 +16,10 @@ permissions:
 
 env:
   ACR: aistartuptr.azurecr.io
-  IMAGE: ic-autopilot-backend
-  AKS_CLUSTER: aks-ic-autopilot
-  AKS_RG: rg-ic-autopilot
-  NAMESPACE: ic-autopilot
+  IMAGE: pii-multiagent-backend
+  AKS_CLUSTER: aks-pii-multiagent
+  AKS_RG: rg-pii-multiagent
+  NAMESPACE: pii-multiagent
 
 jobs:
   build-and-deploy:
@@ -49,15 +49,25 @@ jobs:
           kubectl apply -f k8s/namespace.yaml
           kubectl apply -f k8s/backend-configmap.yaml
           kubectl apply -f k8s/redis-deployment.yaml
-          kubectl apply -f k8s/backend-deployment.yaml
           kubectl apply -f k8s/backend-service.yaml
 
+          # Create/Update secrets from GitHub secrets
+          kubectl create secret generic backend-secrets \
+            --namespace=$NAMESPACE \
+            --from-literal=AZURE_OPENAI_API_KEY=${{ secrets.AZURE_OPENAI_API_KEY }} \
+            --from-literal=AZURE_SEARCH_ADMIN_KEY=${{ secrets.AZURE_SEARCH_ADMIN_KEY }} \
+            --from-literal=PGPASSWORD=${{ secrets.PGPASSWORD }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # Apply deployment
+          kubectl apply -f k8s/backend-deployment.yaml
+
           # Update image
-          kubectl set image deployment/ic-autopilot-backend \
+          kubectl set image deployment/pii-multiagent-backend \
             backend=$ACR/$IMAGE:${{ github.sha }} -n $NAMESPACE
 
           # Wait for rollout
-          kubectl rollout status deployment/ic-autopilot-backend -n $NAMESPACE --timeout=300s
+          kubectl rollout status deployment/pii-multiagent-backend -n $NAMESPACE --timeout=300s
 
       - name: Verify Deployment
         run: |

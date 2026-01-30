@@ -5,8 +5,12 @@
 ### DO NOT MODIFY
 The following projects and resources must NEVER be modified:
 - **fund-rag namespace on AKS** - Do not touch deployments, services, or configurations
+- **ic-autopilot namespace on aks-fund-rag** - Do not touch existing deployments
 - **fund-rag-poc project** - This is a separate production system
-- **rg-fund-rag resource group** - Only add new resources, never modify existing ones
+- **rg-fund-rag resource group** - Do not modify existing resources
+- **fundrag-frontend App Service** - Production app, do not touch
+- **ic-autopilot-frontend App Service** - Existing deployment, do not touch
+- **aks-fund-rag AKS cluster** - Do not modify cluster configuration
 
 ### DATABASE PROTECTION - ABSOLUTE & NON-NEGOTIABLE
 **THIS IS THE MOST CRITICAL RULE - ZERO EXCEPTIONS UNDER ANY CIRCUMSTANCES**
@@ -31,6 +35,14 @@ The following projects and resources must NEVER be modified:
 - `public` schema - **DO NOT USE**
 - Any existing tables - **DO NOT TOUCH**
 
+## AZURE POSTGRESQL PROTECTION:
+The database at `aistartupstr.postgres.database.azure.com` is **STRICTLY READ-ONLY**:
+- All connections MUST use: `SET SESSION CHARACTERISTICS AS TRANSACTION READ ONLY`
+- NEVER execute: INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, TRUNCATE
+- NEVER modify schemas, tables, indexes, or constraints
+- NEVER create or modify database users or roles
+- NEVER run migration scripts against this database
+
 **Breaking this rule will destroy production applications.**
 **When in doubt, ASK THE USER first.**
 
@@ -53,15 +65,23 @@ af-pii-multi-agent/
 
 ## Deployment Targets
 
-- **Backend**: AKS cluster (aks-fund-rag), namespace: ic-autopilot
-- **Frontend**: Azure App Service (ic-autopilot-frontend)
-- **Database**: PostgreSQL (aistartupstr), schema: ic_autopilot
+### New Deployment (rg-pii-multiagent)
+- **Resource Group**: `rg-pii-multiagent` (westeurope)
+- **Backend**: AKS cluster `aks-pii-multiagent`, namespace: `pii-multiagent`
+- **Frontend**: Azure App Service `pii-multiagent-frontend`
+- **VNet**: `vnet-pii-multiagent` (10.1.0.0/16)
+
+### Shared Resources (READ-ONLY, DO NOT MODIFY)
+- **Database**: PostgreSQL `aistartupstr.postgres.database.azure.com` / `fundrag` / `nport_funds` - **READ-ONLY**
+- **PII Container**: `pii-ozguler.eastus.azurecontainer.io:5000`
+- **Azure OpenAI**: `aoai-ep-swedencentral02.openai.azure.com`
+- **AI Search**: `chatops-ozguler.search.windows.net`
 
 ## Environment
 
-- ACR: aistartuptr.azurecr.io
-- Backend image: ic-autopilot-backend
-- Frontend image: ic-autopilot-frontend
+- ACR: `aistartuptr.azurecr.io`
+- Backend image: `pii-multiagent-backend`
+- Frontend image: Deployed via zip to App Service
 
 ## Agent Framework Architecture
 

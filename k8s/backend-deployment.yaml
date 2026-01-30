@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ic-autopilot-backend
-  namespace: ic-autopilot
+  name: pii-multiagent-backend
+  namespace: pii-multiagent
   labels:
-    app: ic-autopilot-backend
+    app: pii-multiagent-backend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: ic-autopilot-backend
+      app: pii-multiagent-backend
   template:
     metadata:
       labels:
-        app: ic-autopilot-backend
+        app: pii-multiagent-backend
     spec:
       containers:
         - name: backend
-          image: aistartuptr.azurecr.io/ic-autopilot-backend:v1
+          image: aistartuptr.azurecr.io/pii-multiagent-backend:latest
           ports:
             - containerPort: 5001
           envFrom:
@@ -41,7 +41,7 @@ spec:
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
-              path: /ready
+              path: /health
               port: 5001
             initialDelaySeconds: 10
             periodSeconds: 5
@@ -51,13 +51,13 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: ic-autopilot-backend-hpa
-  namespace: ic-autopilot
+  name: pii-multiagent-backend-hpa
+  namespace: pii-multiagent
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: ic-autopilot-backend
+    name: pii-multiagent-backend
   minReplicas: 2
   maxReplicas: 5
   metrics:

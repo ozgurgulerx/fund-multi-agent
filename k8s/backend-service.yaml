@@ -1,44 +1,31 @@
----
-# ClusterIP (internal K8s only)
+# Internal LoadBalancer for App Service VNet integration
 apiVersion: v1
 kind: Service
 metadata:
-  name: ic-autopilot-backend
-  namespace: ic-autopilot
+  name: pii-multiagent-backend-internal
+  namespace: pii-multiagent
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: /health
 spec:
-  type: ClusterIP
+  type: LoadBalancer
+  selector:
+    app: pii-multiagent-backend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5001
+---
+# ClusterIP for internal access
+apiVersion: v1
+kind: Service
+metadata:
+  name: pii-multiagent-backend
+  namespace: pii-multiagent
+spec:
+  selector:
+    app: pii-multiagent-backend
   ports:
     - port: 5001
       targetPort: 5001
-  selector:
-    app: ic-autopilot-backend
----
-# Internal LoadBalancer (for App Service VNet access)
-apiVersion: v1
-kind: Service
-metadata:
-  name: ic-autopilot-backend-internal
-  namespace: ic-autopilot
-  annotations:
-    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
-spec:
-  type: LoadBalancer
-  ports:
-    - port: 80
-      targetPort: 5001
-  selector:
-    app: ic-autopilot-backend
----
-# External LoadBalancer (for testing - optional)
-apiVersion: v1
-kind: Service
-metadata:
-  name: ic-autopilot-backend-lb
-  namespace: ic-autopilot
-spec:
-  type: LoadBalancer
-  ports:
-    - port: 80
-      targetPort: 5001
-  selector:
-    app: ic-autopilot-backend
+  type: ClusterIP
