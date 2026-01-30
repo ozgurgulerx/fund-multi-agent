@@ -45,30 +45,53 @@ jobs:
 
       - name: Prepare Deployment Package
         run: |
-          mkdir -p deploy/.next
+          mkdir -p /tmp/deploy/.next
 
-          # Copy standalone output
-          cp -r frontend/.next/standalone/* deploy/ 2>/dev/null || true
+          # Debug: show standalone structure
+          echo "=== Standalone structure ==="
+          find frontend/.next/standalone -type f -name "server.js" | head -5
 
-          # For monorepo structure, find the server.js
-          find frontend/.next/standalone -name "server.js" -exec cp {} deploy/ \; 2>/dev/null || true
-          find frontend/.next/standalone -name "package.json" -exec cp {} deploy/ \; 2>/dev/null || true
+          # Find the server.js - it's usually in a nested path matching the build machine's directory structure
+          SERVER_JS=$(find frontend/.next/standalone -type f -name "server.js" ! -path "*/node_modules/*" | head -1)
 
-          # Copy static assets
-          cp -r frontend/.next/static deploy/.next/
+          if [ -z "$SERVER_JS" ]; then
+            echo "ERROR: server.js not found in standalone output"
+            exit 1
+          fi
 
-          # Copy public assets
-          cp -r frontend/public deploy/ 2>/dev/null || true
+          STANDALONE_PATH=$(dirname "$SERVER_JS")
+          echo "Found standalone path: $STANDALONE_PATH"
 
-          # List contents for debugging
-          ls -la deploy/
+          # Copy files
+          cp "$STANDALONE_PATH/server.js" /tmp/deploy/
+          cp "$STANDALONE_PATH/package.json" /tmp/deploy/
+          cp -r "$STANDALONE_PATH/node_modules" /tmp/deploy/
+
+          # Copy .next server files if they exist
+          if [ -d "$STANDALONE_PATH/.next" ]; then
+            cp -r "$STANDALONE_PATH/.next"/* /tmp/deploy/.next/
+          fi
+
+          # Copy static files (always from build root)
+          cp -r frontend/.next/static /tmp/deploy/.next/static
+
+          # Create public directory
+          mkdir -p /tmp/deploy/public
+          cp -r frontend/public/* /tmp/deploy/public/ 2>/dev/null || true
+
+          # Create zip
+          cd /tmp/deploy && zip -r /tmp/app.zip .
+
+          echo "=== Deployment package contents ==="
+          ls -la /tmp/deploy/
+          echo "=== .next contents ==="
+          ls -la /tmp/deploy/.next/
 
       - name: Deploy to App Service
         run: |
-          cd deploy && zip -r ../app.zip .
           az webapp deploy --resource-group $AZURE_RG \
             --name $AZURE_WEBAPP_NAME \
-            --src-path ../app.zip \
+            --src-path /tmp/app.zip \
             --type zip \
             --restart true
 
