@@ -611,7 +611,7 @@ export async function* generateMockEvents(
   // Emit portfolio explanation
   const explanationText = generatePortfolioExplanation(winner.allocations!, winner.metrics!, actualPolicy);
   yield toRunEvent(
-    createEvent(runId, traceId, "portfolio.explanation", "explain_memo_agent", "Explain Memo Agent", "Portfolio explanation generated", {
+    createEvent(runId, traceId, "portfolio.explanation", "agent", "Explain Memo Agent", "Portfolio explanation generated", {
       explanation: explanationText,
       candidateId: winnerId,
     })
