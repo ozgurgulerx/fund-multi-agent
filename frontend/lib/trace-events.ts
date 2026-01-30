@@ -34,7 +34,8 @@ export type TraceEventType =
   // Agent-specific
   | "agent.evidence"
   | "agent.reasoning"
-  | "portfolio.update";
+  | "portfolio.update"
+  | "portfolio.explanation";
 
 export type ActorType = "orchestrator" | "agent" | "tool" | "system";
 
