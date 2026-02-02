@@ -33,6 +33,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <footer className="fixed bottom-2 right-4 text-xs text-muted-foreground/60 z-50">
+            Built by Innovation Hub Istanbul | <a href="mailto:ozgurguler@microsoft.com" className="hover:text-muted-foreground">Ozgur Guler</a>
+          </footer>
         </ThemeProvider>
       </body>
     </html>
